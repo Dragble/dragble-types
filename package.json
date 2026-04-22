@@ -1,0 +1,58 @@
+{
+  "name": "dragble-types",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "TypeScript type definitions for the Dragble Editor SDK",
+  "types": "dist/index.d.ts",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rimraf dist",
+    "prepublishOnly": "npm run build",
+    "prepare": "husky"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "dragble",
+    "editor",
+    "types",
+    "typescript",
+    "email-editor",
+    "page-builder",
+    "template-editor",
+    "template-builder"
+  ],
+  "author": "Dragble",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Dragble/dragble-types.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Dragble/dragble-types/issues"
+  },
+  "homepage": "https://docs.dragble.com",
+  "devDependencies": {
+    "@commitlint/cli": "^20.5.0",
+    "@commitlint/config-conventional": "^20.5.0",
+    "husky": "^9.1.7",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
