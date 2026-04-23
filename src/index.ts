@@ -160,7 +160,7 @@ export type ShortcutBarPlacement =
  */
 export type EditorContentType = "module";
 
-export * from './versioning';
+export * from "./versioning";
 
 // ============================================================================
 // POPUP TYPES
@@ -2852,7 +2852,7 @@ export type AuditCallback = (result: AuditResult) => void;
 // SDK INSTANCE INTERFACE
 // ============================================================================
 
-export interface PexelizeSDK {
+export interface DragbleSDK {
   init(config: PexelizeConfig): void;
   destroy(): void;
   isReady(): boolean;
@@ -3006,3 +3006,12 @@ export interface PexelizeSDK {
     callback: (data: T) => void,
   ): void;
 }
+
+// ============================================================================
+// DRAGBLE ALIASES (public-facing names)
+// ============================================================================
+
+export type DragbleConfig = PexelizeConfig;
+export type DragbleCallbacks = PexelizeCallbacks;
+export type DragbleToolConfig = PexelizeToolConfig;
+export type DragbleWidgetConfig = PexelizeWidgetConfig;
