@@ -1,7 +1,7 @@
 {
   "name": "dragble-types",
   "version": "1.0.1",
-  "description": "TypeScript type definitions for the Dragble Editor SDK",
+  "description": "TypeScript type definitions for the AI-powered Dragble Editor SDK",
   "types": "dist/index.d.ts",
   "main": "dist/index.js",
   "exports": {
@@ -23,6 +23,9 @@
     "access": "public"
   },
   "keywords": [
+    "ai",
+    "ai-powered",
+    "ai-email-editor",
     "dragble",
     "editor",
     "types",

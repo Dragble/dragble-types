@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://dragble.com">
-    <img src="logo.png" alt="Dragble Email Editor - React Email Template Builder" width="300" />
+    <img src="logo.png" alt="Dragble - AI-Powered Email Editor SDK Types" width="300" />
   </a>
 </p>
 
@@ -11,7 +11,7 @@
 
 # dragble-types
 
-Shared TypeScript type definitions for the [Dragble Editor](https://dragble.com) SDK. This is the **single source of truth** for all public API types used by the framework wrappers:
+Shared TypeScript type definitions for the [Dragble Editor](https://dragble.com) — the **AI-powered email builder** SDK. This is the **single source of truth** for all public API types used by the framework wrappers:
 
 - [`dragble-react-editor`](https://www.npmjs.com/package/dragble-react-editor)
 - [`dragble-vue-editor`](https://www.npmjs.com/package/dragble-vue-editor)
