@@ -1,6 +1,6 @@
 {
   "name": "dragble-types",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "TypeScript type definitions for the AI-powered Dragble Editor SDK",
   "types": "dist/index.d.ts",
   "main": "dist/index.js",
