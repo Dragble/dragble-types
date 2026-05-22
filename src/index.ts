@@ -1209,6 +1209,13 @@ export interface FeaturesConfig {
    * @default undefined
    */
   dynamicImage?: boolean;
+  /**
+   * Enable MCP (Model Context Protocol) integration.
+   * When `true` AND the plan allows it, `connectMCP()` pairs AI clients to this session.
+   * When `false` or `undefined`, `connectMCP()` is rejected regardless of the plan.
+   * @default false
+   */
+  mcp?: boolean;
 }
 
 // ============================================================================
@@ -2520,7 +2527,11 @@ export type EditorEventName =
   | "export"
   | "displayCondition:applied"
   | "displayCondition:removed"
-  | "displayCondition:updated";
+  | "displayCondition:updated"
+  | "mcp.connected"
+  | "mcp.disconnected"
+  | "mcp.status"
+  | "mcp.toolFired";
 
 /**
  * Main SDK initialization configuration.
@@ -2849,6 +2860,63 @@ export interface AuditOptions {
 export type AuditCallback = (result: AuditResult) => void;
 
 // ============================================================================
+// MCP CONNECTIVITY TYPES (Model Context Protocol)
+// ============================================================================
+
+export type McpStorageMode = "full" | "metadata-only" | "memory-only";
+
+export const MCP_SESSION_ID_MIN_LENGTH = 8;
+export const MCP_SESSION_ID_MAX_LENGTH = 128;
+export const MCP_SESSION_ID_PATTERN = /^[a-zA-Z0-9_-]{8,128}$/;
+
+export interface ConnectMCPOptions {
+  id: string;
+  editorMode?: EditorMode;
+  seedFromEditor?: boolean;
+  storage?: McpStorageMode;
+}
+
+export interface ConnectMCPResult {
+  sessionId: string;
+  storageMode?: McpStorageMode;
+  resumed?: boolean;
+}
+
+export interface GetPairingCodeResult {
+  code: string;
+  expiresAt: number;
+}
+
+export interface EndPairingResult {
+  revoked: boolean;
+}
+
+export interface DisconnectMCPResult {
+  destroyed: boolean;
+}
+
+export type MCPConnectErrorCode =
+  | "MCP_NOT_AVAILABLE_ON_PLAN"
+  | "MCP_DISABLED_BY_SDK"
+  | "INVALID_MCP_SESSION_ID"
+  | "INVALID_STORAGE_MODE"
+  | "MCP_ALREADY_CONNECTED"
+  | "USER_ALREADY_HAS_ACTIVE_SESSION"
+  | "SESSION_CONTROLLED_BY_BACKEND"
+  | "SESSION_CONTROLLED_BY_AI_CLIENT";
+
+export type MCPControllerType = "backend" | "paired_client" | null;
+
+export type MCPStatusResult =
+  | { paired: false; reason?: string }
+  | { paired: true; sessionId: string; mcpServerUrl: string };
+
+export interface MCPToolFiredEvent {
+  kind: string;
+  args: Record<string, unknown>;
+}
+
+// ============================================================================
 // SDK INSTANCE INTERFACE
 // ============================================================================
 
@@ -3005,6 +3073,14 @@ export interface DragbleSDK {
     event: EditorEventName,
     callback: (data: T) => void,
   ): void;
+
+  // MCP (Model Context Protocol) - AI integration
+  connectMCP(opts: ConnectMCPOptions): Promise<ConnectMCPResult>;
+  disconnectMCP(): Promise<DisconnectMCPResult>;
+  getPairingCode(): Promise<GetPairingCodeResult>;
+  endPairing(): Promise<EndPairingResult>;
+  getMCPStatus(): Promise<MCPStatusResult>;
+  onAIToolFired(callback: (event: MCPToolFiredEvent) => void): () => void;
 }
 
 // ============================================================================

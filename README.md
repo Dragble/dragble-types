@@ -89,6 +89,7 @@ This package exports 200+ types covering the entire Dragble Editor SDK surface:
 | **Asset storage**      | `ExternalStorageConfig`, `ExternalAsset`, `ExternalFolder`                                                                             |
 | **Events & callbacks** | `EditorEventName`, `DragbleCallbacks`                                                                                                  |
 | **Validation**         | `AuditResult`, `AuditOptions`, `ValidatorFunction`                                                                                     |
+| **MCP**                | `ConnectMCPOptions`, `ConnectMCPResult`, `DisconnectMCPResult`, `MCPConnectErrorCode`, `MCPStatusResult`, `MCPToolFiredEvent`, `McpStorageMode` |
 | **SDK interface**      | `DragbleSDK` (full interface for all public methods)                                                                                   |
 
 ## Project Structure
@@ -107,6 +108,76 @@ dragble-types/
 | --------------- | ----------------------------- |
 | `npm run build` | Compile TypeScript to `dist/` |
 | `npm run clean` | Remove the `dist/` directory  |
+
+## MCP (Model Context Protocol)
+
+Connect AI clients (OpenCode, Claude Code, Cursor, Windsurf) to a live Dragble editor session.
+
+### Types
+
+| Type | Description |
+| --- | --- |
+| `ConnectMCPOptions` | Options for `connectMCP()` — `id` (BYOI session ID, required), `storage`, `editorMode` |
+| `ConnectMCPResult` | Result of `connectMCP()` — `sessionId`, `pairingCode`, `resumed` |
+| `DisconnectMCPResult` | Result of `disconnectMCP()` — `destroyed` (true if PG record permanently deleted) |
+| `MCPConnectErrorCode` | Error codes: `MCP_NOT_AVAILABLE_ON_PLAN`, `MCP_DISABLED_BY_SDK`, `INVALID_MCP_SESSION_ID`, `MCP_ALREADY_CONNECTED`, `USER_ALREADY_HAS_ACTIVE_SESSION` |
+| `MCPStatusResult` | Current pairing status — `{ paired: false }` or `{ paired: true, sessionId, mcpServerUrl }` |
+| `MCPToolFiredEvent` | Emitted when an AI client calls a tool — `kind` + `args` |
+| `McpStorageMode` | `"full"` (persist design), `"metadata-only"` (PG only), `"memory-only"` (RAM only) |
+| `GetPairingCodeResult` | 8-digit pairing code + expiry timestamp |
+| `EndPairingResult` | Whether an active pairing code was revoked |
+
+### SDK Methods
+
+```typescript
+// Connect to MCP with a bring-your-own-id session
+const result = await sdk.connectMCP({ id: "user-42-doc-99" });
+
+// Check pairing status
+const status = await sdk.getMCPStatus();
+
+// Get a new pairing code (rotates the previous one)
+const { code, expiresAt } = await sdk.getPairingCode();
+
+// Revoke the active pairing code (session stays alive)
+await sdk.endPairing();
+
+// Permanently disconnect and destroy the session (PG + R2 deleted)
+const { destroyed } = await sdk.disconnectMCP();
+
+// Listen for AI tool calls in real time
+const unsubscribe = sdk.onAIToolFired((event) => {
+  console.log(`AI called ${event.kind}`, event.args);
+});
+```
+
+### Enabling MCP
+
+MCP requires **two conditions** (dual-gate):
+
+1. **Plan allows it** — Starter plan or higher (`core.mcp` in allowed features)
+2. **SDK opts in** — `features: { mcp: true }` in the SDK config (default is `false`)
+
+```typescript
+sdk.init({
+  id: "editor-container",
+  features: { mcp: true },
+});
+```
+
+If the plan doesn't include MCP, `connectMCP()` rejects with `MCP_NOT_AVAILABLE_ON_PLAN`.
+If `features.mcp` is not set to `true`, `connectMCP()` rejects with `MCP_DISABLED_BY_SDK`.
+
+### Server-Side Session Termination
+
+SaaS backends can force-destroy a session via HTTP (e.g., when a user's subscription ends):
+
+```bash
+curl -X DELETE https://mcp.dragble.io/sessions/user-42-doc-99 \
+  -H "X-API-Key: db_mcp_your_key_here"
+```
+
+This permanently deletes the session record from the database. The AI client loses connection and cannot reconnect.
 
 ## Contributing
 
