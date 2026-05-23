@@ -2867,47 +2867,148 @@ export const MCP_SESSION_ID_MIN_LENGTH = 8;
 export const MCP_SESSION_ID_MAX_LENGTH = 128;
 export const MCP_SESSION_ID_PATTERN = /^[a-zA-Z0-9_-]{8,128}$/;
 
+/**
+ * Options for {@link DragbleSDK.connectMCP}.
+ *
+ * The `id` field is a bring-your-own-identifier (BYOI) that maps the MCP
+ * session to your domain entity (user document, workspace template, tenant
+ * record, etc.). It must be stable across page reloads and device switches
+ * so the same session can be resumed.
+ */
 export interface ConnectMCPOptions {
+  /**
+   * BYOI session identifier. Stable across refreshes and devices.
+   *
+   * Maps to your domain entity (user-doc, workspace-template, tenant-entity).
+   * Used in PG lookups and URL paths.
+   *
+   * Format: 8–128 characters, alphanumeric plus `_` and `-`.
+   *
+   * @example "alice-campaign-2026"
+   */
   id: string;
+  /**
+   * Optional editor mode override (`"email"` | `"web"` | `"popup"` | `"module"`).
+   * Defaults to the mode the editor is currently running in.
+   */
   editorMode?: EditorMode;
+  /**
+   * When `true` (default), seeds the MCP session with the editor's current
+   * design via `editor.fullSync`. Set to `false` if you want a blank MCP
+   * session that ignores the editor's current state.
+   */
   seedFromEditor?: boolean;
 }
 
+/**
+ * Result returned by {@link DragbleSDK.connectMCP}.
+ */
 export interface ConnectMCPResult {
+  /**
+   * The session ID — same as the `id` you passed in (BYOI).
+   * Use this when calling other MCP methods like `getPairingCode()`.
+   */
   sessionId: string;
+  /**
+   * `true` if reconnecting to an existing session (e.g. page reload,
+   * instance restart, or a session already present in PG).
+   * `false` for a brand-new session.
+   */
   resumed?: boolean;
 }
 
+/**
+ * Result returned by {@link DragbleSDK.getPairingCode}.
+ */
 export interface GetPairingCodeResult {
+  /**
+   * 8-digit numeric pairing code (e.g. `"47289153"`). Single-use.
+   *
+   * Share with a third-party AI client (Claude Code, OpenCode, Codex) so it
+   * can join the session via `pair_with_editor(code)`. Expires after the TTL.
+   */
   code: string;
+  /**
+   * Unix timestamp in milliseconds when the code expires.
+   * Default TTL is 15 minutes. After expiry, call `getPairingCode()` again
+   * to mint a fresh one.
+   */
   expiresAt: number;
 }
 
+/**
+ * Result returned by {@link DragbleSDK.endPairing}.
+ */
 export interface EndPairingResult {
+  /**
+   * `true` if the pairing code was active and got revoked.
+   * `false` if no active code existed (no-op).
+   */
   revoked: boolean;
 }
 
+/**
+ * Result returned by {@link DragbleSDK.disconnectMCP}.
+ */
 export interface DisconnectMCPResult {
+  /**
+   * `true` if the underlying `mcp_sessions` PG row was permanently deleted.
+   * `false` if the session was already gone (idempotent).
+   */
   destroyed: boolean;
 }
 
+/**
+ * Error codes that `connectMCP()` rejects with when the connection cannot
+ * be established. Inspect the rejection reason to decide how to recover.
+ *
+ * @example
+ * sdk.connectMCP({ id: "my-session" }).catch((code: MCPConnectErrorCode) => {
+ *   if (code === "MCP_NOT_AVAILABLE_ON_PLAN") showUpgradePrompt();
+ * });
+ */
 export type MCPConnectErrorCode =
+  /** Project's billing plan doesn't include MCP. Upgrade the plan to fix. */
   | "MCP_NOT_AVAILABLE_ON_PLAN"
+  /** SDK config has `features.mcp: false`. Enable it in the SDK config to fix. */
   | "MCP_DISABLED_BY_SDK"
+  /** The `id` passed didn't match format rules (8–128 chars, alphanumeric + `_` + `-`). */
   | "INVALID_MCP_SESSION_ID"
+  /** The same session ID is already paired to another editor instance. Disconnect first or use a different ID. */
   | "MCP_ALREADY_CONNECTED"
+  /** The current user already has a different active session. Concurrency limit reached for the project's plan. */
   | "USER_ALREADY_HAS_ACTIVE_SESSION"
+  /** A backend MCP integration is currently controlling this session — the editor can't take over. */
   | "SESSION_CONTROLLED_BY_BACKEND"
+  /** A third-party AI client is currently paired — the editor can't connect simultaneously. */
   | "SESSION_CONTROLLED_BY_AI_CLIENT";
 
 export type MCPControllerType = "backend" | "paired_client" | null;
 
+/**
+ * Current MCP connection status, returned by {@link DragbleSDK.getMCPStatus}.
+ *
+ * Discriminated on `paired`:
+ * - `{ paired: false }` — no active session (optionally includes a `reason`).
+ * - `{ paired: true }` — session is live; includes the session ID and the
+ *   MCP server URL the AI client should connect to.
+ */
 export type MCPStatusResult =
   | { paired: false; reason?: string }
   | { paired: true; sessionId: string; mcpServerUrl: string };
 
+/**
+ * Event emitted when an AI client (or the editor itself via AI) invokes an
+ * MCP tool. Subscribe via {@link DragbleSDK.onAIToolFired}.
+ */
 export interface MCPToolFiredEvent {
+  /**
+   * The MCP tool name that was invoked (e.g. `"add_heading"`, `"update_row"`).
+   */
   kind: string;
+  /**
+   * The arguments passed to the tool, keyed by parameter name.
+   */
   args: Record<string, unknown>;
 }
 
@@ -3070,11 +3171,58 @@ export interface DragbleSDK {
   ): void;
 
   // MCP (Model Context Protocol) - AI integration
+  /**
+   * Pair the editor with an MCP session. Requires `options.id` (BYOI).
+   *
+   * Use the returned `sessionId` for subsequent MCP calls. Rejects with one
+   * of the {@link MCPConnectErrorCode} literals on failure.
+   *
+   * @param opts - Session options including the required BYOI `id`.
+   * @returns Resolves with `{ sessionId, resumed }` on success.
+   * @throws {MCPConnectErrorCode} One of the error code literals if the
+   *   connection cannot be established.
+   */
   connectMCP(opts: ConnectMCPOptions): Promise<ConnectMCPResult>;
+  /**
+   * Permanently disconnect from the MCP session. Deletes the `mcp_sessions`
+   * PG row. Any third-party AI clients paired via pairing code are kicked.
+   *
+   * Idempotent — calling on an already-disconnected session returns
+   * `{ destroyed: false }`.
+   */
   disconnectMCP(): Promise<DisconnectMCPResult>;
+  /**
+   * Mint an 8-digit pairing code for the current MCP session.
+   *
+   * Share the code with a third-party AI client (Claude Code, OpenCode,
+   * Codex). Single-use, expires after 15 minutes. Call again to mint a
+   * fresh one after expiry or use.
+   */
   getPairingCode(): Promise<GetPairingCodeResult>;
+  /**
+   * Manually revoke the active pairing code before its natural TTL expires.
+   *
+   * Use to invalidate a code that was shared but not yet used. Returns
+   * `{ revoked: false }` if no active code exists.
+   */
   endPairing(): Promise<EndPairingResult>;
+  /**
+   * Get the current MCP connection status.
+   *
+   * Use to check if the session is still active, which third-party clients
+   * are paired, and the MCP server URL.
+   */
   getMCPStatus(): Promise<MCPStatusResult>;
+  /**
+   * Subscribe to MCP tool-fired events.
+   *
+   * The callback fires every time an AI client (or the editor itself via AI)
+   * invokes an MCP tool. Returns an unsubscribe function — call it on
+   * component unmount or when no longer interested.
+   *
+   * @param callback - Receives a {@link MCPToolFiredEvent} on each tool call.
+   * @returns An unsubscribe function.
+   */
   onAIToolFired(callback: (event: MCPToolFiredEvent) => void): () => void;
 }
 
