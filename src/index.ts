@@ -2863,8 +2863,6 @@ export type AuditCallback = (result: AuditResult) => void;
 // MCP CONNECTIVITY TYPES (Model Context Protocol)
 // ============================================================================
 
-export type McpStorageMode = "full" | "metadata-only" | "memory-only";
-
 export const MCP_SESSION_ID_MIN_LENGTH = 8;
 export const MCP_SESSION_ID_MAX_LENGTH = 128;
 export const MCP_SESSION_ID_PATTERN = /^[a-zA-Z0-9_-]{8,128}$/;
@@ -2873,12 +2871,10 @@ export interface ConnectMCPOptions {
   id: string;
   editorMode?: EditorMode;
   seedFromEditor?: boolean;
-  storage?: McpStorageMode;
 }
 
 export interface ConnectMCPResult {
   sessionId: string;
-  storageMode?: McpStorageMode;
   resumed?: boolean;
 }
 
@@ -2899,7 +2895,6 @@ export type MCPConnectErrorCode =
   | "MCP_NOT_AVAILABLE_ON_PLAN"
   | "MCP_DISABLED_BY_SDK"
   | "INVALID_MCP_SESSION_ID"
-  | "INVALID_STORAGE_MODE"
   | "MCP_ALREADY_CONNECTED"
   | "USER_ALREADY_HAS_ACTIVE_SESSION"
   | "SESSION_CONTROLLED_BY_BACKEND"

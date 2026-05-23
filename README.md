@@ -89,7 +89,7 @@ This package exports 200+ types covering the entire Dragble Editor SDK surface:
 | **Asset storage**      | `ExternalStorageConfig`, `ExternalAsset`, `ExternalFolder`                                                                                      |
 | **Events & callbacks** | `EditorEventName`, `DragbleCallbacks`                                                                                                           |
 | **Validation**         | `AuditResult`, `AuditOptions`, `ValidatorFunction`                                                                                              |
-| **MCP**                | `ConnectMCPOptions`, `ConnectMCPResult`, `DisconnectMCPResult`, `MCPConnectErrorCode`, `MCPStatusResult`, `MCPToolFiredEvent`, `McpStorageMode` |
+| **MCP**                | `ConnectMCPOptions`, `ConnectMCPResult`, `DisconnectMCPResult`, `MCPConnectErrorCode`, `MCPStatusResult`, `MCPToolFiredEvent` |
 | **SDK interface**      | `DragbleSDK` (full interface for all public methods)                                                                                            |
 
 ## Project Structure
@@ -117,13 +117,12 @@ Connect AI clients (OpenCode, Claude Code, Cursor, Windsurf) to a live Dragble e
 
 | Type                   | Description                                                                                                                                           |
 | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ConnectMCPOptions`    | Options for `connectMCP()` — `id` (BYOI session ID, required), `storage`, `editorMode`                                                                |
+| `ConnectMCPOptions`    | Options for `connectMCP()` — `id` (BYOI session ID, required), `editorMode`                                                                            |
 | `ConnectMCPResult`     | Result of `connectMCP()` — `sessionId`, `pairingCode`, `resumed`                                                                                      |
 | `DisconnectMCPResult`  | Result of `disconnectMCP()` — `destroyed` (true if PG record permanently deleted)                                                                     |
 | `MCPConnectErrorCode`  | Error codes: `MCP_NOT_AVAILABLE_ON_PLAN`, `MCP_DISABLED_BY_SDK`, `INVALID_MCP_SESSION_ID`, `MCP_ALREADY_CONNECTED`, `USER_ALREADY_HAS_ACTIVE_SESSION` |
 | `MCPStatusResult`      | Current pairing status — `{ paired: false }` or `{ paired: true, sessionId, mcpServerUrl }`                                                           |
 | `MCPToolFiredEvent`    | Emitted when an AI client calls a tool — `kind` + `args`                                                                                              |
-| `McpStorageMode`       | `"full"` (persist design), `"metadata-only"` (PG only), `"memory-only"` (RAM only)                                                                    |
 | `GetPairingCodeResult` | 8-digit pairing code + expiry timestamp                                                                                                               |
 | `EndPairingResult`     | Whether an active pairing code was revoked                                                                                                            |
 
