@@ -74,23 +74,23 @@ import type { EditorOptions, DesignJson } from "dragble-angular-editor";
 
 This package exports 200+ types covering the entire Dragble Editor SDK surface:
 
-| Category               | Key Types                                                                                                                              |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| **Core**               | `EditorMode`, `ThemeMode`, `ViewMode`, `TextDirection`, `AccentColor`, `LocaleCode`                                                    |
-| **Configuration**      | `DragbleConfig`, `EditorOptions`, `AppearanceConfig`, `ToolsConfig`, `FeaturesConfig`, `AIConfig`                                      |
-| **Design data**        | `DesignJson`, `RowData`, `ColumnData`, `ContentData`, `BodyValues`                                                                     |
-| **Export**             | `ExportHtmlOptions`, `ExportImageOptions`, `ExportImageData`, `ExportPdfOptions`, `ExportPdfData`, `ExportZipOptions`, `ExportZipData` |
-| **Merge tags**         | `MergeTag`, `MergeTagGroup`, `MergeTagsConfig`                                                                                         |
-| **Special links**      | `SpecialLink`, `SpecialLinkGroup`, `SpecialLinksConfig`                                                                                |
-| **Modules**            | `Module`, `ModuleData`, `ModuleMetadata`, `ModuleType`                                                                                 |
-| **Popup**              | `PopupConfig`, `PopupValues`, `PopupPosition`, `PopupOverlay`                                                                          |
-| **Collaboration**      | `CollaborationFeaturesConfig`, `CommentAction`, `UserInfo`                                                                             |
-| **Custom tools**       | `DragbleToolConfig`, `DragbleWidgetConfig`, `CustomToolConfig`                                                                         |
-| **Asset storage**      | `ExternalStorageConfig`, `ExternalAsset`, `ExternalFolder`                                                                             |
-| **Events & callbacks** | `EditorEventName`, `DragbleCallbacks`                                                                                                  |
-| **Validation**         | `AuditResult`, `AuditOptions`, `ValidatorFunction`                                                                                     |
+| Category               | Key Types                                                                                                                                       |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Core**               | `EditorMode`, `ThemeMode`, `ViewMode`, `TextDirection`, `AccentColor`, `LocaleCode`                                                             |
+| **Configuration**      | `DragbleConfig`, `EditorOptions`, `AppearanceConfig`, `ToolsConfig`, `FeaturesConfig`, `AIConfig`                                               |
+| **Design data**        | `DesignJson`, `RowData`, `ColumnData`, `ContentData`, `BodyValues`                                                                              |
+| **Export**             | `ExportHtmlOptions`, `ExportImageOptions`, `ExportImageData`, `ExportPdfOptions`, `ExportPdfData`, `ExportZipOptions`, `ExportZipData`          |
+| **Merge tags**         | `MergeTag`, `MergeTagGroup`, `MergeTagsConfig`                                                                                                  |
+| **Special links**      | `SpecialLink`, `SpecialLinkGroup`, `SpecialLinksConfig`                                                                                         |
+| **Modules**            | `Module`, `ModuleData`, `ModuleMetadata`, `ModuleType`                                                                                          |
+| **Popup**              | `PopupConfig`, `PopupValues`, `PopupPosition`, `PopupOverlay`                                                                                   |
+| **Collaboration**      | `CollaborationFeaturesConfig`, `CommentAction`, `UserInfo`                                                                                      |
+| **Custom tools**       | `DragbleToolConfig`, `DragbleWidgetConfig`, `CustomToolConfig`                                                                                  |
+| **Asset storage**      | `ExternalStorageConfig`, `ExternalAsset`, `ExternalFolder`                                                                                      |
+| **Events & callbacks** | `EditorEventName`, `DragbleCallbacks`                                                                                                           |
+| **Validation**         | `AuditResult`, `AuditOptions`, `ValidatorFunction`                                                                                              |
 | **MCP**                | `ConnectMCPOptions`, `ConnectMCPResult`, `DisconnectMCPResult`, `MCPConnectErrorCode`, `MCPStatusResult`, `MCPToolFiredEvent`, `McpStorageMode` |
-| **SDK interface**      | `DragbleSDK` (full interface for all public methods)                                                                                   |
+| **SDK interface**      | `DragbleSDK` (full interface for all public methods)                                                                                            |
 
 ## Project Structure
 
@@ -115,17 +115,17 @@ Connect AI clients (OpenCode, Claude Code, Cursor, Windsurf) to a live Dragble e
 
 ### Types
 
-| Type | Description |
-| --- | --- |
-| `ConnectMCPOptions` | Options for `connectMCP()` — `id` (BYOI session ID, required), `storage`, `editorMode` |
-| `ConnectMCPResult` | Result of `connectMCP()` — `sessionId`, `pairingCode`, `resumed` |
-| `DisconnectMCPResult` | Result of `disconnectMCP()` — `destroyed` (true if PG record permanently deleted) |
-| `MCPConnectErrorCode` | Error codes: `MCP_NOT_AVAILABLE_ON_PLAN`, `MCP_DISABLED_BY_SDK`, `INVALID_MCP_SESSION_ID`, `MCP_ALREADY_CONNECTED`, `USER_ALREADY_HAS_ACTIVE_SESSION` |
-| `MCPStatusResult` | Current pairing status — `{ paired: false }` or `{ paired: true, sessionId, mcpServerUrl }` |
-| `MCPToolFiredEvent` | Emitted when an AI client calls a tool — `kind` + `args` |
-| `McpStorageMode` | `"full"` (persist design), `"metadata-only"` (PG only), `"memory-only"` (RAM only) |
-| `GetPairingCodeResult` | 8-digit pairing code + expiry timestamp |
-| `EndPairingResult` | Whether an active pairing code was revoked |
+| Type                   | Description                                                                                                                                           |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ConnectMCPOptions`    | Options for `connectMCP()` — `id` (BYOI session ID, required), `storage`, `editorMode`                                                                |
+| `ConnectMCPResult`     | Result of `connectMCP()` — `sessionId`, `pairingCode`, `resumed`                                                                                      |
+| `DisconnectMCPResult`  | Result of `disconnectMCP()` — `destroyed` (true if PG record permanently deleted)                                                                     |
+| `MCPConnectErrorCode`  | Error codes: `MCP_NOT_AVAILABLE_ON_PLAN`, `MCP_DISABLED_BY_SDK`, `INVALID_MCP_SESSION_ID`, `MCP_ALREADY_CONNECTED`, `USER_ALREADY_HAS_ACTIVE_SESSION` |
+| `MCPStatusResult`      | Current pairing status — `{ paired: false }` or `{ paired: true, sessionId, mcpServerUrl }`                                                           |
+| `MCPToolFiredEvent`    | Emitted when an AI client calls a tool — `kind` + `args`                                                                                              |
+| `McpStorageMode`       | `"full"` (persist design), `"metadata-only"` (PG only), `"memory-only"` (RAM only)                                                                    |
+| `GetPairingCodeResult` | 8-digit pairing code + expiry timestamp                                                                                                               |
+| `EndPairingResult`     | Whether an active pairing code was revoked                                                                                                            |
 
 ### SDK Methods
 
@@ -173,7 +173,7 @@ If `features.mcp` is not set to `true`, `connectMCP()` rejects with `MCP_DISABLE
 SaaS backends can force-destroy a session via HTTP (e.g., when a user's subscription ends):
 
 ```bash
-curl -X DELETE https://mcp.dragble.io/sessions/user-42-doc-99 \
+curl -X DELETE https://mcp.dragble.com/sessions/user-42-doc-99 \
   -H "X-API-Key: db_mcp_your_key_here"
 ```
 
