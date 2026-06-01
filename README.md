@@ -89,7 +89,7 @@ This package exports 200+ types covering the entire Dragble Editor SDK surface:
 | **Asset storage**      | `ExternalStorageConfig`, `ExternalAsset`, `ExternalFolder`                                                                                      |
 | **Events & callbacks** | `EditorEventName`, `DragbleCallbacks`                                                                                                           |
 | **Validation**         | `AuditResult`, `AuditOptions`, `ValidatorFunction`                                                                                              |
-| **MCP**                | `JoinMCPOptions`, `JoinMCPResult`, `StartMCPPairingOptions`, `StartMCPPairingResult`, `ConnectMCPOptions`, `ConnectMCPResult`, `DisconnectMCPResult`, `MCPConnectErrorCode`, `MCPStatusResult`, `MCPToolFiredEvent` |
+| **MCP**                | `JoinMCPOptions`, `JoinMCPResult`, `StartMCPPairingOptions`, `StartMCPPairingResult`, `DisconnectMCPResult`, `MCPConnectErrorCode`, `MCPStatusResult`, `MCPToolFiredEvent` |
 | **SDK interface**      | `DragbleSDK` (full interface for all public methods)                                                                                            |
 
 ## Project Structure
@@ -119,8 +119,6 @@ Connect your backend or AI clients (OpenCode, Claude Code, Cursor, Windsurf) to 
 | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `JoinMCPOptions`       | Options for `joinMCP()` — `id` (BYOI session ID, required), `editorMode`                                                                               |
 | `JoinMCPResult`        | Result of `joinMCP()` — `sessionId`, `resumed`                                                                                                        |
-| `ConnectMCPOptions`    | Backward-compatible alias options for `connectMCP()`                                                                                                  |
-| `ConnectMCPResult`     | Backward-compatible alias result — `sessionId`, `resumed`                                                                                             |
 | `StartMCPPairingOptions` | Options for `startMCPPairing()` — same as `joinMCP()`                                                                                                |
 | `StartMCPPairingResult` | Result of `startMCPPairing()` — `sessionId`, `resumed`, `code`, `expiresAt`                                                                           |
 | `DisconnectMCPResult`  | Result of `disconnectMCP()` — `destroyed` (true if PG record permanently deleted)                                                                     |
@@ -136,9 +134,6 @@ Connect your backend or AI clients (OpenCode, Claude Code, Cursor, Windsurf) to 
 // Backend-managed flow: join with a bring-your-own-id session
 const result = await sdk.joinMCP({ id: "user-42-doc-99" });
 // Send result.sessionId to your backend. Backend calls MCP with mcp_key.
-
-// Compatibility alias
-await sdk.connectMCP({ id: "user-42-doc-99" });
 
 // Third-party client flow: join and mint a pairing code
 const { sessionId, code, expiresAt } = await sdk.startMCPPairing({

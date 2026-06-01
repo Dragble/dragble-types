@@ -2868,14 +2868,14 @@ export const MCP_SESSION_ID_MAX_LENGTH = 128;
 export const MCP_SESSION_ID_PATTERN = /^[a-zA-Z0-9_-]{8,128}$/;
 
 /**
- * Options for {@link DragbleSDK.joinMCP} and {@link DragbleSDK.connectMCP}.
+ * Options for {@link DragbleSDK.joinMCP}.
  *
  * The `id` field is a bring-your-own-identifier (BYOI) that maps the MCP
  * session to your domain entity (user document, workspace template, tenant
  * record, etc.). It must be stable across page reloads and device switches
  * so the same session can be resumed.
  */
-export interface ConnectMCPOptions {
+export interface JoinMCPOptions {
   /**
    * BYOI session identifier. Stable across refreshes and devices.
    *
@@ -2899,9 +2899,9 @@ export interface ConnectMCPOptions {
 }
 
 /**
- * Result returned by {@link DragbleSDK.joinMCP} and {@link DragbleSDK.connectMCP}.
+ * Result returned by {@link DragbleSDK.joinMCP}.
  */
-export interface ConnectMCPResult {
+export interface JoinMCPResult {
   /**
    * The session ID — same as the `id` you passed in (BYOI).
    * Use this when calling other MCP methods like `getPairingCode()`.
@@ -2914,9 +2914,6 @@ export interface ConnectMCPResult {
    */
   resumed?: boolean;
 }
-
-export type JoinMCPOptions = ConnectMCPOptions;
-export type JoinMCPResult = ConnectMCPResult;
 
 /**
  * Result returned by {@link DragbleSDK.getPairingCode}.
@@ -2938,7 +2935,7 @@ export interface GetPairingCodeResult {
 }
 
 export type StartMCPPairingOptions = JoinMCPOptions;
-export type StartMCPPairingResult = ConnectMCPResult & GetPairingCodeResult;
+export type StartMCPPairingResult = JoinMCPResult & GetPairingCodeResult;
 
 /**
  * Result returned by {@link DragbleSDK.endPairing}.
@@ -2963,11 +2960,11 @@ export interface DisconnectMCPResult {
 }
 
 /**
- * Error codes that `connectMCP()` rejects with when the connection cannot
+ * Error codes that MCP session methods reject with when the connection cannot
  * be established. Inspect the rejection reason to decide how to recover.
  *
  * @example
- * sdk.connectMCP({ id: "my-session" }).catch((code: MCPConnectErrorCode) => {
+ * sdk.joinMCP({ id: "my-session" }).catch((code: MCPConnectErrorCode) => {
  *   if (code === "MCP_NOT_AVAILABLE_ON_PLAN") showUpgradePrompt();
  * });
  */
@@ -3188,10 +3185,6 @@ export interface DragbleSDK {
    *   connection cannot be established.
    */
   joinMCP(opts: JoinMCPOptions): Promise<JoinMCPResult>;
-  /**
-   * Backward-compatible alias for {@link DragbleSDK.joinMCP}.
-   */
-  connectMCP(opts: ConnectMCPOptions): Promise<ConnectMCPResult>;
   /**
    * Join MCP and mint a pairing code in one call.
    *
