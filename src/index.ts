@@ -1211,9 +1211,9 @@ export interface FeaturesConfig {
   dynamicImage?: boolean;
   /**
    * Enable MCP (Model Context Protocol) integration.
-   * When `true` AND the plan allows it, `connectMCP()` pairs AI clients to this session.
-   * When `false` or `undefined`, `connectMCP()` is rejected regardless of the plan.
-   * @default false
+   * When `undefined` or `true` AND the plan allows it, MCP session APIs are available.
+   * Set `false` to explicitly disable MCP from SDK configuration.
+   * @default true
    */
   mcp?: boolean;
 }
@@ -2868,7 +2868,7 @@ export const MCP_SESSION_ID_MAX_LENGTH = 128;
 export const MCP_SESSION_ID_PATTERN = /^[a-zA-Z0-9_-]{8,128}$/;
 
 /**
- * Options for {@link DragbleSDK.connectMCP}.
+ * Options for {@link DragbleSDK.joinMCP} and {@link DragbleSDK.connectMCP}.
  *
  * The `id` field is a bring-your-own-identifier (BYOI) that maps the MCP
  * session to your domain entity (user document, workspace template, tenant
@@ -2893,15 +2893,13 @@ export interface ConnectMCPOptions {
    */
   editorMode?: EditorMode;
   /**
-   * When `true` (default), seeds the MCP session with the editor's current
-   * design via `editor.fullSync`. Set to `false` if you want a blank MCP
-   * session that ignores the editor's current state.
+   * @deprecated Ignored. Live MCP sessions execute tools in the editor browser.
    */
   seedFromEditor?: boolean;
 }
 
 /**
- * Result returned by {@link DragbleSDK.connectMCP}.
+ * Result returned by {@link DragbleSDK.joinMCP} and {@link DragbleSDK.connectMCP}.
  */
 export interface ConnectMCPResult {
   /**
@@ -2916,6 +2914,9 @@ export interface ConnectMCPResult {
    */
   resumed?: boolean;
 }
+
+export type JoinMCPOptions = ConnectMCPOptions;
+export type JoinMCPResult = ConnectMCPResult;
 
 /**
  * Result returned by {@link DragbleSDK.getPairingCode}.
@@ -2935,6 +2936,9 @@ export interface GetPairingCodeResult {
    */
   expiresAt: number;
 }
+
+export type StartMCPPairingOptions = JoinMCPOptions;
+export type StartMCPPairingResult = ConnectMCPResult & GetPairingCodeResult;
 
 /**
  * Result returned by {@link DragbleSDK.endPairing}.
@@ -3172,17 +3176,31 @@ export interface DragbleSDK {
 
   // MCP (Model Context Protocol) - AI integration
   /**
-   * Pair the editor with an MCP session. Requires `options.id` (BYOI).
+   * Join the editor to an MCP session. Requires `options.id` (BYOI).
    *
-   * Use the returned `sessionId` for subsequent MCP calls. Rejects with one
-   * of the {@link MCPConnectErrorCode} literals on failure.
+   * Use this for backend-managed AI flows: pass the returned `sessionId` to
+   * your backend, which calls MCP with the backend `mcp_key`. Rejects with
+   * one of the {@link MCPConnectErrorCode} literals on failure.
    *
    * @param opts - Session options including the required BYOI `id`.
    * @returns Resolves with `{ sessionId, resumed }` on success.
    * @throws {MCPConnectErrorCode} One of the error code literals if the
    *   connection cannot be established.
    */
+  joinMCP(opts: JoinMCPOptions): Promise<JoinMCPResult>;
+  /**
+   * Backward-compatible alias for {@link DragbleSDK.joinMCP}.
+   */
   connectMCP(opts: ConnectMCPOptions): Promise<ConnectMCPResult>;
+  /**
+   * Join MCP and mint a pairing code in one call.
+   *
+   * Use this for third-party AI-client flows: the client is configured with
+   * `mcp_client_key`, then calls `pair_with_editor` with the returned code.
+   */
+  startMCPPairing(
+    opts: StartMCPPairingOptions,
+  ): Promise<StartMCPPairingResult>;
   /**
    * Permanently disconnect from the MCP session. Deletes the `mcp_sessions`
    * PG row. Any third-party AI clients paired via pairing code are kicked.

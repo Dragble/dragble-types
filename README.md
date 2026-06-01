@@ -89,7 +89,7 @@ This package exports 200+ types covering the entire Dragble Editor SDK surface:
 | **Asset storage**      | `ExternalStorageConfig`, `ExternalAsset`, `ExternalFolder`                                                                                      |
 | **Events & callbacks** | `EditorEventName`, `DragbleCallbacks`                                                                                                           |
 | **Validation**         | `AuditResult`, `AuditOptions`, `ValidatorFunction`                                                                                              |
-| **MCP**                | `ConnectMCPOptions`, `ConnectMCPResult`, `DisconnectMCPResult`, `MCPConnectErrorCode`, `MCPStatusResult`, `MCPToolFiredEvent` |
+| **MCP**                | `JoinMCPOptions`, `JoinMCPResult`, `StartMCPPairingOptions`, `StartMCPPairingResult`, `ConnectMCPOptions`, `ConnectMCPResult`, `DisconnectMCPResult`, `MCPConnectErrorCode`, `MCPStatusResult`, `MCPToolFiredEvent` |
 | **SDK interface**      | `DragbleSDK` (full interface for all public methods)                                                                                            |
 
 ## Project Structure
@@ -111,14 +111,18 @@ dragble-types/
 
 ## MCP (Model Context Protocol)
 
-Connect AI clients (OpenCode, Claude Code, Cursor, Windsurf) to a live Dragble editor session.
+Connect your backend or AI clients (OpenCode, Claude Code, Cursor, Windsurf) to a live Dragble editor session.
 
 ### Types
 
 | Type                   | Description                                                                                                                                           |
 | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ConnectMCPOptions`    | Options for `connectMCP()` — `id` (BYOI session ID, required), `editorMode`                                                                            |
-| `ConnectMCPResult`     | Result of `connectMCP()` — `sessionId`, `pairingCode`, `resumed`                                                                                      |
+| `JoinMCPOptions`       | Options for `joinMCP()` — `id` (BYOI session ID, required), `editorMode`                                                                               |
+| `JoinMCPResult`        | Result of `joinMCP()` — `sessionId`, `resumed`                                                                                                        |
+| `ConnectMCPOptions`    | Backward-compatible alias options for `connectMCP()`                                                                                                  |
+| `ConnectMCPResult`     | Backward-compatible alias result — `sessionId`, `resumed`                                                                                             |
+| `StartMCPPairingOptions` | Options for `startMCPPairing()` — same as `joinMCP()`                                                                                                |
+| `StartMCPPairingResult` | Result of `startMCPPairing()` — `sessionId`, `resumed`, `code`, `expiresAt`                                                                           |
 | `DisconnectMCPResult`  | Result of `disconnectMCP()` — `destroyed` (true if PG record permanently deleted)                                                                     |
 | `MCPConnectErrorCode`  | Error codes: `MCP_NOT_AVAILABLE_ON_PLAN`, `MCP_DISABLED_BY_SDK`, `INVALID_MCP_SESSION_ID`, `MCP_ALREADY_CONNECTED`, `USER_ALREADY_HAS_ACTIVE_SESSION` |
 | `MCPStatusResult`      | Current pairing status — `{ paired: false }` or `{ paired: true, sessionId, mcpServerUrl }`                                                           |
@@ -129,8 +133,18 @@ Connect AI clients (OpenCode, Claude Code, Cursor, Windsurf) to a live Dragble e
 ### SDK Methods
 
 ```typescript
-// Connect to MCP with a bring-your-own-id session
-const result = await sdk.connectMCP({ id: "user-42-doc-99" });
+// Backend-managed flow: join with a bring-your-own-id session
+const result = await sdk.joinMCP({ id: "user-42-doc-99" });
+// Send result.sessionId to your backend. Backend calls MCP with mcp_key.
+
+// Compatibility alias
+await sdk.connectMCP({ id: "user-42-doc-99" });
+
+// Third-party client flow: join and mint a pairing code
+const { sessionId, code, expiresAt } = await sdk.startMCPPairing({
+  id: "user-42-doc-99",
+});
+// AI clients use mcp_client_key and pair_with_editor(code).
 
 // Check pairing status
 const status = await sdk.getMCPStatus();
@@ -152,20 +166,20 @@ const unsubscribe = sdk.onAIToolFired((event) => {
 
 ### Enabling MCP
 
-MCP requires **two conditions** (dual-gate):
+MCP requires **two conditions**:
 
 1. **Plan allows it** — Starter plan or higher (`core.mcp` in allowed features)
-2. **SDK opts in** — `features: { mcp: true }` in the SDK config (default is `false`)
+2. **SDK has not opted out** — MCP is on by default; set `features: { mcp: false }` to turn it off for an embed
 
 ```typescript
 sdk.init({
   id: "editor-container",
-  features: { mcp: true },
+  features: { mcp: false }, // optional opt-out
 });
 ```
 
-If the plan doesn't include MCP, `connectMCP()` rejects with `MCP_NOT_AVAILABLE_ON_PLAN`.
-If `features.mcp` is not set to `true`, `connectMCP()` rejects with `MCP_DISABLED_BY_SDK`.
+If the plan doesn't include MCP, MCP session calls reject with `MCP_NOT_AVAILABLE_ON_PLAN`.
+If `features.mcp` is set to `false`, MCP session calls reject with `MCP_DISABLED_BY_SDK`.
 
 ### Server-Side Session Termination
 
